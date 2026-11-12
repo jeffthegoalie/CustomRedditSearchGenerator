@@ -1,85 +1,130 @@
 # Reddit Feed Search Builder
 
-A free, static, mobile-friendly tool that generates Reddit post searches using **per-subreddit flair and/or title allowlists**, optional exclusions, and selectable Reddit search sorting (default **New**).
+A free, static, mobile-friendly tool for building Reddit post searches using **different flair and title filters in each subreddit**. Supports include/exclude rules, Boolean logic, configurable sorting, an optimized search query, and JSON import/export.
 
-**Live site:** https://jeffthegoalie.github.io/CustomeRedditSearchGenerator/
+- **Website:** https://jeffthegoalie.github.io/CustomeRedditSearchGenerator/
+- **Source:** https://github.com/jeffthegoalie/CustomeRedditSearchGenerator
+- **License:** [MIT](LICENSE)
 
-**Source:** https://github.com/jeffthegoalie/CustomeRedditSearchGenerator
+This is an independent search-link generator. **It does not use the Reddit API, retrieve Reddit posts, create an account, or retain your rules between visits.**
 
-## Features
+## What it can do
 
-- Any number of subreddits, each with its own rules.
-- Include posts by **flair** or **title** phrase. Combine inclusion rules with **Any (OR)** or **All (AND)** within each subreddit.
-- Exclude additional flairs or title phrases.
-- Different rules for different subreddits; subreddit groups are joined with **OR**.
-- Choose **New**, **Relevance**, **Hot**, **Top**, or **Most comments** for post search results (defaults to New).
-- Builds a Reddit search URL with `type=posts` and your chosen `sort` value.
-- **Export JSON / Import JSON** for explicit configuration backup or transfer. Import replaces the current form after confirmation; it is not stored in the browser.
-- Preview the query and copy the query or URL.
-- Responsive design for desktop and phone; follows device light/dark mode.
-- **No API key, Reddit authentication, database, dependencies, cookies, tracking, local storage, or saved user configuration.** Forms start blank on every fresh page load.
-
-## Publish free with GitHub Pages
-
-1. Use the existing repository [`jeffthegoalie/CustomeRedditSearchGenerator`](https://github.com/jeffthegoalie/CustomeRedditSearchGenerator), with **Public** visibility for GitHub Free.
-2. Replace the repository-root `index.html` and `README.md` with these updated versions and add the new `LICENSE` file. You can upload them directly on GitHub, or commit/push them with Git.
-3. Open the repository's **Settings > Pages**.
-4. Under **Build and deployment**, choose **Deploy from a branch**.
-5. Select branch **main**, folder **/(root)**, then **Save**.
-6. When published, open https://jeffthegoalie.github.io/CustomeRedditSearchGenerator/ .
-7. On iPhone, open the site in Safari; optionally use **Share > Add to Home Screen** for quicker access.
-
-No build command, hosting bill, or GitHub Actions workflow is required.
+- Enter multiple subreddits, each with its own **Flair** or **Title** inclusion rules.
+- Combine inclusion rules within a subreddit using **Any (OR)** or **All (AND)**.
+- Exclude additional flair/title matches using **NOT**.
+- Combine all configured subreddit searches with **OR**.
+- Choose Reddit's **New** (default), **Relevance**, **Hot**, **Top**, or **Most comments** sort.
+- **Optimize** the generated search by removing unnecessary quotes/grouping, deduplicating identical rules, and grouping subreddits that have the same filter conditions.
+- Show a **live query-length counter** and warning against Reddit's documented 512-character API search-query limit.
+- **Open or copy the combined search**, plus **open or copy individual subreddit search links** for manual testing.
+- **Export JSON** and **Import JSON** to transfer your configuration explicitly without saving it in the browser.
+- Work on desktop and mobile browsers with light/dark mode support.
 
 ## Use
 
-1. Enter a subreddit name, e.g. `hockey` or `r/hockey`.
-2. Add Include rules such as `Flair = News`, `Flair = Discussion`, or `Title = goalie`. Enter **one word or phrase per rule**.
-3. Select **Any (OR)** to match any included rule, or **All (AND)** to require every included rule within that subreddit.
-4. Optionally add Exclude rules, e.g. `Title = giveaway`. Exclusions are joined with OR and negated as a group.
-5. Add more subreddits, each with their own conditions.
-6. Choose a sort order (default **New**) and use **Open search**. Reddit opens in a new tab with that sorting.
-7. Click **Export JSON** to download your rules and sort option. Later use **Import JSON** to restore the configuration for the current page only.
+1. Enter a subreddit, for example `hockey` or `r/hockey`.
+2. Add **Include** rules. Choose Flair or Title and enter **one word or phrase per rule**. Example: `Flair = News`, `Title = goalie`.
+3. Choose **Any (OR)** if any inclusion rule may match, or **All (AND)** if every inclusion rule must match for that subreddit.
+4. Add optional **Exclude** rules, such as `Title = giveaway`. All exclusions within a subreddit are applied as `NOT (A OR B …)`.
+5. Add more subreddits. They can have different rules or share rules.
+6. Select the sort order. Review the **optimized search query** and its character count.
+7. Click **Open combined search**, **Copy combined URL**, or use the links under **Test individual subreddit searches**. Reddit handles the actual search results.
+8. To reuse the form later, click **Export JSON** and save the file. Next time, **Import JSON** and select it. Alternatively, bookmark the *generated Reddit search URL* to return to that exact query.
 
-### Example
+### Example: different conditions in different subreddits
 
-- `r/hockey`: Include flair `News` OR flair `Discussion`
-- `r/hockeygoalies`: Include title `Warrior` OR title `Bauer`; exclude title `sale`
+- `r/hockey`: allow flair `News` OR flair `Discussion`
+- `r/hockeygoalies`: allow titles containing `Warrior` OR `Bauer`; exclude titles containing `sale`
 
-Produces a grouped query along the lines of:
+The builder produces a query along these lines:
 
 ```text
-(subreddit:hockey AND (flair:"News" OR flair:"Discussion")) OR (subreddit:hockeygoalies AND (title:"Warrior" OR title:"Bauer") NOT (title:"sale"))
+(subreddit:hockey AND (flair:News OR flair:Discussion)) OR (subreddit:hockeygoalies AND (title:Warrior OR title:Bauer) NOT title:sale)
 ```
 
-## Privacy and session behavior
+The `sort` selection is added to the **Reddit URL**, not to the search expression.
 
-This application contains no persistence code. No configuration is remembered on page refresh or a later visit. Exporting is an explicit file download; importing reads a user-selected JSON file locally in the browser and does not upload it to the site. Entries exist only in the open page's memory while in use. The only external destination for a generated search is Reddit when you click **Open search**. Copying and bookmarking a generated **Reddit search URL** preserves rules in the URL itself, not in this builder. Like other public GitHub Pages sites, the page and its source code are publicly accessible.
+### Example: automatic query optimization
 
-## Important limitations
+If `r/hockey` and `r/nhl` both have the *same* conditions (for example, `Flair = News`), the tool groups their subreddit scopes:
 
-- This is **not** a Reddit feed reader and does **not** query Reddit's API or display Reddit posts directly.
-- Reddit's indexing and Boolean search implementation can omit or inconsistently match results, especially for complex queries. `sort=new` requests newest-first results but does not guarantee exhaustive, instant coverage. Other sort orders likewise depend on Reddit’s search service.
-- Search field phrases follow Reddit's documented syntax. Test multiword flair/title values against actual search results.
-- Reddit may apply its account and Safe Search settings to results.
-- Some mobile browsers or Reddit app deep links may handle search URLs differently. Safari and desktop browser links are the most predictable.
+```text
+(subreddit:hockey OR subreddit:nhl) AND flair:News
+```
 
-## Configuration file format
+If those subreddits have **different** rules, they stay in separate groups, preserving their original matching logic. Matching rules entered in different orders can still be grouped. Repeated identical rule terms are deduplicated.
 
-The exported JSON contains `format`, `version`, `sort`, and a `subreddits` array (each with `name`, `logic`, and `rules`). The importer checks the format and version, accepts a maximum 1 MB JSON file, and validates the supported sort, rule types, and field values. Importing does **not** persist anything to localStorage, sessionStorage, cookies, or a backend.
+**This optimization is syntax-only.** It does not query Reddit, use AI, remove unique user criteria, or change the intended Boolean logic. Reddit may nevertheless handle complex expressions inconsistently.
 
-## Editing
+## Query length and Reddit limitations
 
-Everything is in `index.html`: HTML, CSS, and vanilla JavaScript. No packages, bundlers, install steps, or ongoing hosting service integration. Edit the file, commit to GitHub, and Pages redeploys.
+Reddit's [API search reference](https://www.reddit.com/dev/api/) documents a **512-character maximum for the `q` query parameter**. This is not simply a limit on the URL's encoded length. We use it as a **warning threshold**; the regular Reddit website can have different behavior and may also impose other restrictions.
 
-## License and attribution
+The builder:
 
-Copyright (c) 2026 **jeffthegoalie**. Released under the [MIT License](LICENSE). You may use, adapt, and redistribute this code, including commercially, provided the copyright and license notices are retained in copies or substantial portions. The footer links to the author’s GitHub profile, the license, and the original repository.
+- Counts the characters of the **optimized** expression as you type.
+- Shows approximately how many characters were removed by optimization.
+- Warns when the query passes 512 characters.
+- **Does not automatically split the combined query**. This is intentional: automatically splitting would create separate results that are not merged into one newest-first feed.
+- Allows you to **try opening or copying an over-limit search anyway**, so you can test how Reddit handles it.
+- Provides **one search link per configured subreddit**, subject to that subreddit's own query complexity. These links are explicitly for manual testing, **not an automatic split or a merged feed**.
+
+To shorten an overlong search, remove less important rules, reduce the number of different rule groups, or give several subreddits identical criteria where appropriate. A long expression cannot be made valid by URL encoding alone.
+
+Reddit's search indexing is not guaranteed to be exhaustive or immediate. Sorting by **New** requests newest-first *search results* but doesn't guarantee every new matching post will appear. Multiword phrases and Boolean expressions may behave differently across Reddit's web and mobile interfaces.
+
+## JSON import/export and privacy
+
+The exported file uses the **existing version 1 format**, compatible with exported configurations from the previous version of this builder:
+
+```json
+{
+  "format": "reddit-feed-search-builder",
+  "version": 1,
+  "sort": "new",
+  "subreddits": [
+    {
+      "name": "hockey",
+      "logic": "ANY",
+      "rules": [
+        { "field": "flair", "mode": "include", "term": "News" }
+      ]
+    }
+  ]
+}
+```
+
+Import confirms before replacing your current form. The file is read locally in the browser; it is **not uploaded** to this site. Imports are validated (file size, version, sort value, and structure). Export generates a JSON download on demand.
+
+**No configuration is saved** in cookies, localStorage, sessionStorage, a database, or a server. Reloading the page resets the form and sets sorting back to **New**. There are no analytics or external JavaScript dependencies. Opening a generated search sends the query to Reddit, where Reddit's policies and account settings apply. An exported JSON file or bookmarked Reddit URL can contain your subreddit and keyword choices, so share those intentionally.
+
+## Publish with GitHub Pages
+
+The GitHub repository root contains only:
+
+```text
+index.html
+README.md
+LICENSE
+```
+
+1. Commit `index.html` and `README.md` to the root of [`jeffthegoalie/CustomeRedditSearchGenerator`](https://github.com/jeffthegoalie/CustomeRedditSearchGenerator), replacing the existing versions. Keep `LICENSE` unchanged.
+2. In **Settings → Pages**, select **Deploy from a branch**.
+3. Set the branch to `main` and directory to `/(root)`.
+4. Enable GitHub Actions if your repository displays a message that Actions is disabled; GitHub Pages uses its own deployment workflow. You do **not** need to write a custom workflow or Jekyll configuration.
+5. Once deployment succeeds, open https://jeffthegoalie.github.io/CustomeRedditSearchGenerator/.
+
+The entire application is contained in **`index.html`** (HTML, CSS, JavaScript). No build step, API key, GitHub Actions configuration file, package manager, database, or paid hosting is required. `LICENSE` is a separate standard text file for licensing, not a runtime dependency.
+
+## License and credit
+
+Copyright (c) 2026 **jeffthegoalie**. Released under the [MIT License](LICENSE). You may use, modify, and redistribute the code, including commercially, provided the original copyright and license notices are retained as the MIT License requires.
+
+The site's footer links to the original repository and license. This is an **unofficial** project and is not affiliated with or endorsed by Reddit.
 
 ## References
 
-- [Reddit search operators and Boolean grouping](https://support.reddithelp.com/hc/en-us/articles/19696541895316-Available-search-features)
-- [Reddit search sorting](https://support.reddithelp.com/hc/en-us/articles/19695706914196-What-filters-and-sorts-are-available)
-- [GitHub Pages quickstart](https://docs.github.com/en/pages/quickstart)
-
-**Unofficial project. Not affiliated with Reddit.**
+- [Reddit: Available search features](https://support.reddithelp.com/hc/en-us/articles/19696541895316-Available-search-features)
+- [Reddit: Search API reference and `q` parameter](https://www.reddit.com/dev/api/)
+- [GitHub Pages: Publishing from a branch](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
