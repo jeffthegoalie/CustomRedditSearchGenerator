@@ -2,7 +2,7 @@
 
 A free, static, mobile-friendly tool that generates Reddit post searches using **per-subreddit flair and/or title allowlists**, optional exclusions, and selectable Reddit search sorting (default **New**).
 
-**Live site:** https://jeffthegoalie.github.io/CustomeRedditSearchGenerator/ (once GitHub Pages is enabled)
+**Live site:** https://jeffthegoalie.github.io/CustomeRedditSearchGenerator/
 
 **Source:** https://github.com/jeffthegoalie/CustomeRedditSearchGenerator
 
