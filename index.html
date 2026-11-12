@@ -5,30 +5,55 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#ff4500">
 <meta name="author" content="jeffthegoalie">
-<meta name="description" content="Build Reddit searches using per-subreddit flair and title rules, with selectable sorting. No API, accounts, or saved settings.">
+<meta name="description" content="Build Reddit searches using per-subreddit flair and title rules, selectable sorting, query optimization, and JSON import/export. No API or saved settings.">
 <title>Reddit Feed Search Builder</title>
 <style>
 :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:light dark;--bg:#f5f6f8;--fg:#19212a;--card:#fff;--muted:#55616f;--border:#d7dce2;--accent:#d93e0b;--soft:#fff0e9;--input:#fff;--shadow:0 3px 16px #18212b0d}
 @media(prefers-color-scheme:dark){:root{--bg:#11151b;--fg:#f0f3f7;--card:#1b222b;--muted:#b7c0cc;--border:#3b4653;--accent:#ff7748;--soft:#38261f;--input:#151b23;--shadow:0 4px 16px #0004}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);line-height:1.5}main{width:min(940px,calc(100% - 26px));margin:22px auto 60px}h1{font-size:clamp(1.65rem,5vw,2.35rem);line-height:1.15;margin:4px 0 10px}h2{font-size:1.13rem;margin:0 0 12px}h3{font-size:1rem;margin:0}p{margin:7px 0 12px}.subtle,small{color:var(--muted)}.eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:.75rem;font-weight:800;color:var(--accent)}.panel,.subcard{background:var(--card);border:1px solid var(--border);border-radius:15px;padding:20px;box-shadow:var(--shadow);margin:18px 0}.intro ul{padding-left:20px;margin:10px 0}.intro li{margin:4px 0}.topline,.cardhead,.actions,.ruleline,.row{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}.cardhead{margin-bottom:12px}.pill{display:inline-flex;border-radius:99px;padding:3px 10px;background:var(--soft);color:var(--accent);font-size:.76rem;font-weight:700}.field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:155px}label{font-size:.85rem;font-weight:650}input,select,textarea{width:100%;background:var(--input);border:1px solid var(--border);border-radius:9px;padding:11px 12px;color:var(--fg);font:inherit;min-height:44px}textarea{min-height:105px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.85rem}input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid #ff784c;outline-offset:2px}button,.button{font:inherit;font-weight:700;cursor:pointer;border-radius:9px;border:1px solid var(--border);background:var(--card);color:var(--fg);padding:9px 13px;min-height:42px;text-decoration:none;display:inline-flex;justify-content:center;align-items:center;gap:6px}button.primary,.button.primary{background:var(--accent);color:white;border-color:var(--accent)}button:hover:not(:disabled),a.button:hover{filter:brightness(.95)}button:disabled{opacity:.45;cursor:not-allowed}.danger{color:#bd351c}.rules{display:grid;gap:10px}.ruleline{justify-content:initial;background:var(--bg);border:1px solid var(--border);padding:10px;border-radius:11px}.ruleline .field{min-width:130px}.ruleline .field.term{flex:2;min-width:180px}.ruleline .field.mode{max-width:155px}.remove-rule{align-self:end}.hint{font-size:.8rem;color:var(--muted);margin-top:5px}.warning{border:1px solid #d29a35;background:light-dark(#fff8ea,#322818);padding:10px 12px;border-radius:9px;font-size:.88rem;margin-top:12px}.status{min-height:1.3em;font-size:.86rem;color:var(--muted)}.actions{justify-content:flex-start;margin-top:15px}.preview{margin-top:18px}.footer{font-size:.83rem;color:var(--muted);margin-top:23px}.inline-link{color:var(--accent)}@media(max-width:560px){.panel,.subcard{padding:15px}.cardhead{align-items:start}.ruleline{display:grid;grid-template-columns:1fr 1fr}.ruleline .field.term{grid-column:1/-1}.ruleline .field.mode{max-width:none}.remove-rule{grid-column:1/-1}.actions button{flex:1}button{font-size:.9rem}}
+
+/* Search-length feedback and per-subreddit test links */
+.length-panel{border:1px solid var(--border);background:var(--bg);border-radius:11px;padding:13px;margin:12px 0}
+.length-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.length-head strong{font-variant-numeric:tabular-nums}
+#queryMeter{display:block;width:100%;height:11px;margin-top:9px;accent-color:#228455}
+#queryMeter.near{accent-color:#bd830a}
+#queryMeter.over{accent-color:#be3026}
+#queryMeter:disabled{opacity:.4}
+#optimization{margin:8px 0 0}
+#lengthMessage{margin:6px 0 0}
+.individual-section{margin-top:20px;border-top:1px solid var(--border);padding-top:18px}
+.individual-list{display:grid;gap:10px;margin-top:12px}
+.individual-item{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;border:1px solid var(--border);border-radius:11px;padding:12px;background:var(--bg)}
+.individual-info{flex:1;min-width:190px}
+.individual-info strong{overflow-wrap:anywhere}
+.individual-info small{display:block}
+.individual-controls{display:flex;gap:8px;flex-wrap:wrap}
+.individual-controls button{min-height:36px;padding:6px 10px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:560px){.individual-controls{width:100%}.individual-controls button{flex:1}}
 </style>
 </head>
 <body>
 <main>
-<header><div class="eyebrow">Free · Static · No API</div><h1>Reddit Feed Search Builder</h1><p class="subtle">Pick subreddits and allow only posts matching your chosen flairs or title words. Generate a Reddit search, with your choice of <strong>sorting</strong>.</p></header>
+<header><div class="eyebrow">v1.2 · Free · Static · No API</div><h1>Reddit Feed Search Builder</h1><p class="subtle">Pick subreddits and allow only posts matching your chosen flairs or title words. Generate a Reddit search, with your choice of <strong>sorting</strong>.</p></header>
 <section class="panel intro" aria-labelledby="how"><h2 id="how">How it works</h2>
-<ol><li>Add a subreddit (for example, <strong>hockey</strong> or <strong>r/hockey</strong>).</li><li>Add one or more rules. Choose <strong>Flair</strong> or <strong>Title</strong>, then enter a word or phrase. Use <strong>Include</strong> for an allowlist and <strong>Exclude</strong> to remove unwanted posts.</li><li>Select whether a subreddit must match <strong>Any</strong> or <strong>All</strong> of its inclusion rules. Add other subreddits with different rules.</li><li>Choose a sort order, then click <strong>Open search</strong> to view the combined results on Reddit. Bookmark the Reddit results URL if you want to reuse that search.</li><li>Use <strong>Export JSON</strong> to keep or transfer your configuration. Use <strong>Import JSON</strong> to load it again, without saving any settings in the browser.</li></ol>
+<ol><li>Add a subreddit (for example, <strong>hockey</strong> or <strong>r/hockey</strong>).</li><li>Add one or more rules. Choose <strong>Flair</strong> or <strong>Title</strong>, then enter a word or phrase. Use <strong>Include</strong> for an allowlist and <strong>Exclude</strong> to remove unwanted posts.</li><li>Select whether a subreddit must match <strong>Any</strong> or <strong>All</strong> of its inclusion rules. Add other subreddits with different rules.</li><li>Choose a sort order, then review the <strong>live query-length indicator</strong>. The builder removes redundant syntax and groups subreddits with identical filters.</li><li>Click <strong>Open search</strong> for the combined results, or use the separate <strong>Test this subreddit</strong> links. If the combined query is too long, shorten it or use an individual search; this tool does not split searches automatically.</li><li>Use <strong>Export JSON</strong> to keep or transfer your configuration. Use <strong>Import JSON</strong> to load it again, without saving any settings in the browser.</li></ol>
 <p class="hint">Example: r/hockey allows the <em>News</em> or <em>Discussion</em> flair; r/hockeygoalies allows titles mentioning <em>Warrior</em> or <em>Bauer</em>. The builder combines those subreddit-specific matches with OR.</p>
 <p class="hint"><strong>Privacy:</strong> No logins, analytics, cookies, localStorage, sessionStorage, or external scripts. Your entries are not saved, including after a refresh. The search terms are sent to Reddit only when you open the generated search URL. If you bookmark a Reddit results URL, the rules are encoded in that bookmark.</p>
-<p class="hint"><strong>Search limitation:</strong> Reddit controls matching and indexing. Complex searches can return unexpected or delayed results, and “New” does not guarantee every matching post will appear. This tool is a search URL builder, not a live post reader.</p></section>
+<p class="hint"><strong>Search limitation:</strong> Reddit documents a <strong>512-character maximum</strong> for the search API’s query parameter; the website may behave differently. This builder warns at that length but lets you try the search, since the website may behave differently. It never splits your search automatically. Reddit also controls matching and indexing; “New” does not guarantee every matching post appears. This tool is a search URL builder, not a live post reader.</p></section>
 <section aria-label="Subreddit filters"><div class="topline"><h2 style="margin:0">Build your search</h2><div class="field" style="flex:0 1 230px"><label for="sort">Sort search results by</label><select id="sort"><option value="new">New (newest first)</option><option value="relevance">Relevance</option><option value="hot">Hot</option><option value="top">Top</option><option value="comments">Most comments</option></select></div></div><div id="subreddits"></div><div class="actions"><button id="addSub" type="button">+ Add subreddit</button><button id="clear" type="button">Clear all</button><button id="exportJSON" type="button">Export JSON</button><button id="importJSON" type="button">Import JSON</button><input type="file" id="importFile" accept=".json,application/json" hidden aria-label="Select JSON configuration to import"></div><p class="hint">Export downloads your current configuration as a JSON file. Import replaces the current form after confirmation. Nothing is saved by this webpage between visits.</p></section>
-<section class="panel preview" aria-labelledby="result-title"><h2 id="result-title">Generated search</h2><p class="subtle">Only fully configured subreddits and rules are included. Each subreddit needs at least one Include rule.</p><label for="preview">Reddit search syntax</label><textarea id="preview" readonly placeholder="Your Reddit search query will appear here…"></textarea><div id="issues" role="status" aria-live="polite"></div><div class="actions"><button class="primary" id="open" type="button" disabled>Open search ↗</button><button id="copyURL" type="button" disabled>Copy search URL</button><button id="copyQuery" type="button" disabled>Copy query</button></div><p class="status" id="status" role="status" aria-live="polite"></p></section>
+<section class="panel preview" aria-labelledby="result-title"><h2 id="result-title">Generated search</h2><p class="subtle">Only fully configured subreddits and rules are included. Each subreddit needs at least one Include rule.</p>
+<div class="length-panel" aria-labelledby="query-length-label"><div class="length-head"><label id="query-length-label" for="queryMeter">Query length</label><strong id="queryLength" aria-live="polite">0 / 512 characters</strong></div><progress id="queryMeter" max="512" value="0" aria-label="Query length compared with 512 characters"></progress><p class="hint" id="optimization">Redundant syntax is removed automatically when possible.</p><p class="hint" id="lengthMessage">The 512-character threshold comes from Reddit's documented search API; browser search behavior can differ.</p></div>
+<label for="preview">Optimized Reddit search syntax</label><textarea id="preview" readonly placeholder="Your Reddit search query will appear here…"></textarea><div id="issues" role="status" aria-live="polite"></div><div class="actions"><button class="primary" id="open" type="button" disabled>Open combined search ↗</button><button id="copyURL" type="button" disabled>Copy combined URL</button><button id="copyQuery" type="button" disabled>Copy query</button></div><p class="status" id="status" role="status" aria-live="polite"></p>
+<section class="individual-section" aria-labelledby="individual-title"><h3 id="individual-title">Test individual subreddit searches</h3><p class="hint">Each configured subreddit has its own search link with the same sort order. These are for testing or manually opening smaller searches; the builder <strong>does not automatically split</strong> an overlong combined query.</p><div id="individualList" class="individual-list"></div></section></section>
 <footer class="footer">© 2026 <a class="inline-link" href="https://github.com/jeffthegoalie" target="_blank" rel="noopener noreferrer">jeffthegoalie</a> · <a class="inline-link" href="LICENSE">MIT License</a> · <a class="inline-link" href="https://github.com/jeffthegoalie/CustomeRedditSearchGenerator" target="_blank" rel="noopener noreferrer">Source on GitHub ↗</a><br>Independent, unofficial tool. Not affiliated with Reddit. <a class="inline-link" href="https://support.reddithelp.com/hc/en-us/articles/19696541895316-Available-search-features" target="_blank" rel="noopener noreferrer">Reddit search syntax reference ↗</a></footer>
 </main>
 <script>
 (()=>{'use strict';
- const sortSelect=document.getElementById('sort'), root=document.getElementById('subreddits'), preview=document.getElementById('preview'),issues=document.getElementById('issues'),open=document.getElementById('open'),copyURL=document.getElementById('copyURL'),copyQuery=document.getElementById('copyQuery'),status=document.getElementById('status');
- let nextId=0, subs=[];
+ const MAX_QUERY=512;
+ const sortSelect=document.getElementById('sort'),root=document.getElementById('subreddits'),preview=document.getElementById('preview'),issues=document.getElementById('issues'),open=document.getElementById('open'),copyURL=document.getElementById('copyURL'),copyQuery=document.getElementById('copyQuery'),status=document.getElementById('status'),queryLength=document.getElementById('queryLength'),queryMeter=document.getElementById('queryMeter'),optimization=document.getElementById('optimization'),lengthMessage=document.getElementById('lengthMessage'),individualList=document.getElementById('individualList');
+ let nextId=0,subs=[],currentURL='';
  const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=text;return e;};
  function field(labelText,element){const container=el('div','field'),label=el('label','',labelText);label.htmlFor=element.id;container.append(label,element);return container;}
  function input(id,placeholder,value,oninput){const e=el('input');e.type='text';e.id=id;e.placeholder=placeholder;e.value=value||'';e.addEventListener('input',()=>{oninput(e.value);update();});return e;}
@@ -38,24 +63,75 @@
  function addRule(sub){sub.rules.push({id:++nextId,field:'flair',mode:'include',term:''});render();}
  function render(){root.replaceChildren();subs.forEach((sub,index)=>{const card=el('section','subcard');card.setAttribute('aria-label','Subreddit '+(index+1));const heading=el('div','cardhead'),h=el('h3','',`Subreddit ${index+1}`);heading.append(h,button('Remove subreddit',()=>{subs=subs.filter(x=>x.id!==sub.id);render()},'danger'));card.append(heading);
  const mainRow=el('div','row');mainRow.append(field('Subreddit',input('sub-'+sub.id,'e.g. hockey or r/hockey',sub.name,v=>sub.name=v)),field('Match included rules',select('logic-'+sub.id,[['ANY','Any (OR)'],['ALL','All (AND)']],sub.logic,v=>sub.logic=v)));card.append(mainRow);
- const hint=el('p','hint','Each rule has its own flair or title term. Exclude rules always apply as NOT, regardless of Any/All.');card.append(hint);const rules=el('div','rules');sub.rules.forEach(rule=>{const row=el('div','ruleline');row.append(field('Action',select('mode-'+rule.id,[['include','Include'],['exclude','Exclude']],rule.mode,v=>rule.mode=v)),field('Search field',select('field-'+rule.id,[['flair','Flair'],['title','Title']],rule.field,v=>rule.field=v)),field('Word or phrase',input('term-'+rule.id,rule.field==='flair'?'e.g. News or Game Thread':'e.g. Warrior or trade deadline',rule.term,v=>rule.term=v)));row.append(button('Remove rule',()=>{sub.rules=sub.rules.filter(x=>x.id!==rule.id);render()},'remove-rule danger'));rules.append(row)});card.append(rules);const actions=el('div','actions');actions.append(button('+ Add rule',()=>addRule(sub)));card.append(actions);root.append(card)});update();}
- function normalizeSub(s){return s.trim().replace(/^\/?r\//i,'');}
- function validSub(s){return /^[A-Za-z0-9_]{2,21}$/.test(s);}
- function q(s){return '"'+s.replace(/"/g,'').trim()+'"';}
- function build(){const errors=[],pieces=[];subs.forEach((s,i)=>{const name=normalizeSub(s.name);const active=s.rules.filter(r=>r.term.trim());if(!name&&!active.length)return;if(!name){errors.push(`Subreddit ${i+1}: enter a subreddit name.`);return;}if(!validSub(name)){errors.push(`Subreddit ${i+1}: use a valid subreddit name (letters, numbers, underscores).`);return;}if(s.rules.some(r=>r.term.includes('"')))errors.push(`Subreddit ${i+1}: quotation marks in rules will be removed.`);
- const inc=active.filter(r=>r.mode==='include').map(r=>`${r.field}:${q(r.term)}`),exc=active.filter(r=>r.mode==='exclude').map(r=>`${r.field}:${q(r.term)}`);if(!inc.length){errors.push(`r/${name}: add at least one Include rule.`);return;}let part=`(${inc.join(s.logic==='ALL'?' AND ':' OR ')})`;if(exc.length)part+=` NOT (${exc.join(' OR ')})`;pieces.push(`(subreddit:${name} AND ${part})`);});return {query:pieces.join(' OR '),errors};}
- let currentURL='';function update(){const {query,errors}=build();preview.value=query;currentURL=query?`https://www.reddit.com/search/?q=${encodeURIComponent(query)}&type=posts&sort=${encodeURIComponent(sortSelect.value)}`:'';open.disabled=copyURL.disabled=copyQuery.disabled=!query||errors.some(e=>!e.includes('quotation marks'));issues.replaceChildren();if(errors.length){const box=el('div','warning');errors.forEach(s=>box.append(el('div','',s)));issues.append(box);}status.textContent='';}
- open.addEventListener('click',()=>{if(currentURL)window.open(currentURL,'_blank','noopener,noreferrer')});
- async function copy(value,label){try{await navigator.clipboard.writeText(value);status.textContent=label+' copied.'}catch{status.textContent='Clipboard access unavailable. Select and copy the query manually.';preview.focus();preview.select();}}
- copyURL.addEventListener('click',()=>currentURL&&copy(currentURL,'Search URL'));copyQuery.addEventListener('click',()=>preview.value&&copy(preview.value,'Search query'));
+ card.append(el('p','hint','Each rule has its own flair or title term. Exclude rules always apply as NOT, regardless of Any/All.'));
+ const rules=el('div','rules');sub.rules.forEach(rule=>{const row=el('div','ruleline');row.append(field('Action',select('mode-'+rule.id,[['include','Include'],['exclude','Exclude']],rule.mode,v=>rule.mode=v)),field('Search field',select('field-'+rule.id,[['flair','Flair'],['title','Title']],rule.field,v=>{rule.field=v;render()})),field('Word or phrase',input('term-'+rule.id,rule.field==='flair'?'e.g. News or Game Thread':'e.g. Warrior or trade deadline',rule.term,v=>rule.term=v)));row.append(button('Remove rule',()=>{sub.rules=sub.rules.filter(x=>x.id!==rule.id);render()},'remove-rule danger'));rules.append(row)});card.append(rules);
+ const actions=el('div','actions');actions.append(button('+ Add rule',()=>addRule(sub)));card.append(actions);root.append(card)});update();}
+ const normalizeSub=s=>s.trim().replace(/^\/?r\//i,'');
+ const validSub=s=>/^[A-Za-z0-9_]{2,21}$/.test(s);
+ const charLength=s=>Array.from(s).length;
+ // A single plain word needs no quote characters; multiword phrases keep quotes.
+ // Embedded double quotes are removed (with an on-screen warning) to avoid syntax injection.
+ function termSyntax(term){const cleaned=term.replace(/"/g,'').trim();return /^[A-Za-z0-9_]+$/.test(cleaned)?cleaned:'"'+cleaned+'"';}
+ function dedupe(values){return [...new Set(values)];}
+ function expression(parts,operator){return parts.length===1?parts[0]:'('+parts.join(' '+operator+' ')+')';}
+ function joinRule(inc,exc,logic){const include=expression(inc,logic==='ALL'?'AND':'OR');return include+(exc.length?' NOT '+expression(exc,'OR'):'');}
+ function compile(){const errors=[],warnings=[],clauses=[];
+  subs.forEach((s,i)=>{
+   const name=normalizeSub(s.name),active=s.rules.filter(r=>r.term.trim());
+   if(!name&&!active.length)return;
+   if(!name){errors.push(`Subreddit ${i+1}: enter a subreddit name.`);return;}
+   if(!validSub(name)){errors.push(`Subreddit ${i+1}: use a valid subreddit name (2–21 letters, numbers, or underscores).`);return;}
+   if(s.rules.some(r=>r.term.includes('"')))warnings.push(`r/${name}: quotation marks in rules will be removed.`);
+   const inc=dedupe(active.filter(r=>r.mode==='include').map(r=>`${r.field}:${termSyntax(r.term)}`));
+   const exc=dedupe(active.filter(r=>r.mode==='exclude').map(r=>`${r.field}:${termSyntax(r.term)}`));
+   if(!inc.length){errors.push(`r/${name}: add at least one Include rule.`);return;}
+   const body=joinRule(inc,exc,s.logic);
+   // AND/OR terms and excluded terms are commutative; canonical order lets us
+   // group identical rule sets even when users enter rules in a different order.
+   const key=JSON.stringify({logic:inc.length===1?'ANY':s.logic,inc:[...inc].sort(),exc:[...exc].sort()});
+   const unoptimized='(subreddit:'+name+' AND ('+active.filter(r=>r.mode==='include').map(r=>`${r.field}:"${r.term.replace(/"/g,'').trim()}"`).join(s.logic==='ALL'?' AND ':' OR ')+')'+(active.some(r=>r.mode==='exclude')?' NOT ('+active.filter(r=>r.mode==='exclude').map(r=>`${r.field}:"${r.term.replace(/"/g,'').trim()}"`).join(' OR ')+')':'')+')';
+   clauses.push({name,body,key,unoptimized});
+  });
+  const grouped=new Map();
+  for(const clause of clauses){if(!grouped.has(clause.key))grouped.set(clause.key,{names:[],body:clause.body});const group=grouped.get(clause.key);if(!group.names.some(name=>name.toLowerCase()===clause.name.toLowerCase()))group.names.push(clause.name);}
+  const groups=[...grouped.values()].map(group=>{const scope=expression(group.names.map(name=>'subreddit:'+name),'OR');return scope+' AND '+group.body;});
+  const query=groups.length===1?groups[0]:groups.map(g=>'('+g+')').join(' OR ');
+  const baseline=clauses.map(c=>c.unoptimized).join(' OR ');
+  return {query,baseline,errors,warnings,clauses,groupCount:groups.length};
+ }
+ function searchURL(query){return `https://www.reddit.com/search/?q=${encodeURIComponent(query)}&type=posts&sort=${encodeURIComponent(sortSelect.value)}`;}
+ function update(){const built=compile(),{query,baseline,errors,warnings,clauses}=built,len=charLength(query),overLimit=len>MAX_QUERY,invalid=errors.length>0;
+  preview.value=query;currentURL=query?searchURL(query):'';
+  queryLength.textContent=`${len} / ${MAX_QUERY} characters`;
+  queryMeter.value=Math.min(MAX_QUERY,len);queryMeter.className=overLimit?'over':len>=Math.floor(MAX_QUERY*.85)?'near':'';
+  const saved=Math.max(0,charLength(baseline)-len);
+  optimization.textContent=query?`Optimized query: ${saved} character${saved===1?'':'s'} saved by removing unnecessary syntax and grouping subreddits that share the same rules.`:'Redundant syntax is removed automatically when possible.';
+  lengthMessage.textContent=overLimit?`Combined query exceeds 512 characters by ${len-MAX_QUERY}. Shorten the conditions or try an individual subreddit search below. The tool will NOT split it automatically. You can still try opening it, but Reddit may reject or truncate the query.`:len>=Math.floor(MAX_QUERY*.85)?'Approaching Reddit’s documented 512-character API query limit. The website may apply different restrictions.':'Reddit documents a 512-character limit for its search API query parameter; the website may apply different restrictions.';
+  open.disabled=copyURL.disabled=!query||invalid;
+  open.textContent=overLimit?'Try combined search ↗':'Open combined search ↗';
+  copyQuery.disabled=!query||invalid;
+  issues.replaceChildren();if(errors.length||warnings.length||overLimit){const box=el('div','warning');errors.concat(warnings).forEach(s=>box.append(el('div','',s)));if(overLimit)box.append(el('div','','Combined search is over the documented 512-character API threshold. Reddit may reject it; use the individual links to test smaller searches. No automatic splitting occurs.'));issues.append(box);}
+  individualList.replaceChildren();
+  for(const clause of clauses){const individual='subreddit:'+clause.name+' AND '+clause.body,individualLength=charLength(individual),tooLong=individualLength>MAX_QUERY,disabled=invalid;
+   const row=el('div','individual-item'),info=el('div','individual-info'),name=el('strong','',`r/${clause.name}`),detail=el('small','',`${individualLength} / ${MAX_QUERY} characters${tooLong?' · Over documented threshold; may fail':''}`),controls=el('div','individual-controls');
+   info.append(name,detail);const openOne=button(tooLong?'Try open ↗':'Open ↗',()=>window.open(searchURL(individual),'_blank','noopener,noreferrer')),copyOne=button('Copy URL',()=>copy(searchURL(individual),`r/${clause.name} URL`));openOne.disabled=copyOne.disabled=disabled;controls.append(openOne,copyOne);row.append(info,controls);individualList.append(row);
+  }
+  if(!clauses.length)individualList.append(el('p','hint','Configure a subreddit with at least one Include rule to see its individual search link.'));
+  status.textContent='';
+ }
+ open.addEventListener('click',()=>{if(currentURL&&!open.disabled)window.open(currentURL,'_blank','noopener,noreferrer');});
+ async function copy(value,label){try{await navigator.clipboard.writeText(value);status.textContent=label+' copied.';}catch{status.textContent='Clipboard access unavailable. Select and copy the query manually.';preview.focus();preview.select();}}
+ copyURL.addEventListener('click',()=>currentURL&&!copyURL.disabled&&copy(currentURL,'Combined search URL'));
+ copyQuery.addEventListener('click',()=>preview.value&&!copyQuery.disabled&&copy(preview.value,'Search query'));
  sortSelect.addEventListener('change',update);
  const allowedSorts=new Set(['new','relevance','hot','top','comments']);
+ // Version 1 JSON remains compatible with earlier exports; no persistence is used.
  function exportConfig(){const config={format:'reddit-feed-search-builder',version:1,sort:sortSelect.value,subreddits:subs.map(s=>({name:s.name,logic:s.logic,rules:s.rules.map(r=>({field:r.field,mode:r.mode,term:r.term}))}))};const blob=new Blob([JSON.stringify(config,null,2)+'\n'],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='reddit-feed-builder-config.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);status.textContent='Configuration exported. Store the JSON file somewhere safe if you want to reuse these rules.';}
  function parseConfig(data){if(!data||typeof data!=='object'||Array.isArray(data)||data.format!=='reddit-feed-search-builder'||data.version!==1)throw Error('Unsupported configuration format or version.');if(!allowedSorts.has(data.sort))throw Error('Invalid sort option.');if(!Array.isArray(data.subreddits)||data.subreddits.length>100)throw Error('Invalid subreddit list (maximum 100).');return {sort:data.sort,subreddits:data.subreddits.map((s,i)=>{if(!s||typeof s!=='object'||typeof s.name!=='string'||s.name.length>100||!['ANY','ALL'].includes(s.logic)||!Array.isArray(s.rules)||s.rules.length>100)throw Error(`Invalid subreddit at position ${i+1}.`);return {id:++nextId,name:s.name,logic:s.logic,rules:s.rules.map((r,j)=>{if(!r||typeof r!=='object'||!['flair','title'].includes(r.field)||!['include','exclude'].includes(r.mode)||typeof r.term!=='string'||r.term.length>500)throw Error(`Invalid rule ${j+1} in subreddit ${i+1}.`);return {id:++nextId,field:r.field,mode:r.mode,term:r.term};})};})};}
  const importFile=document.getElementById('importFile');document.getElementById('exportJSON').addEventListener('click',exportConfig);
  document.getElementById('importJSON').addEventListener('click',()=>importFile.click());
  importFile.addEventListener('change',async()=>{const file=importFile.files&&importFile.files[0];importFile.value='';if(!file)return;if(file.size>1024*1024){status.textContent='Import failed: JSON file exceeds 1 MB.';return;}try{const parsed=parseConfig(JSON.parse(await file.text()));if(!window.confirm('Replace the current rules and sort selection with this imported configuration?'))return;subs=parsed.subreddits;sortSelect.value=parsed.sort;render();status.textContent='Configuration imported for this page only. It will not be saved between visits.';}catch(e){status.textContent='Import failed: '+e.message;}});
- document.getElementById('addSub').addEventListener('click',addSub);document.getElementById('clear').addEventListener('click',()=>{subs=[];sortSelect.value='new';addSub()});addSub();
+ document.getElementById('addSub').addEventListener('click',addSub);document.getElementById('clear').addEventListener('click',()=>{subs=[];sortSelect.value='new';addSub();});addSub();
 })();
 </script>
 </body>
